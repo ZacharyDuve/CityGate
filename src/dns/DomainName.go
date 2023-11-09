@@ -32,3 +32,19 @@ func DomainNameToString(dn DomainName) string {
 
 	return retDN
 }
+
+func (this DomainName) Length() int {
+	if this == nil {
+		return 0
+	}
+
+	return len(this)
+}
+
+func (this DomainName) Get(i int) string {
+	if len(this) == 0 || i >= len(this) {
+		return ""
+	}
+
+	return this[i]
+}
