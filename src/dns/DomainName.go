@@ -5,9 +5,11 @@ import (
 	"strings"
 )
 
-type DomainName []string
+type DomainName struct {
+	domains []string
+}
 
-func ParseDomainNameFromString(dn string) (DomainName, error) {
+func ParseDomainNameFromString(dn string) (*DomainName, error) {
 	if dn == "" {
 		return nil, fmt.Errorf("Unable to parse blank domain name")
 	}
@@ -16,35 +18,37 @@ func ParseDomainNameFromString(dn string) (DomainName, error) {
 
 	domains := strings.Split(dn, ".")
 
-	return domains, nil
+	domainName := &DomainName{domains: domains}
+
+	return domainName, nil
 }
 
-func DomainNameToString(dn DomainName) string {
-	if len(dn) == 0 {
-		return "."
+func (this *DomainName) String() string {
+	sb := strings.Builder{}
+
+	for i := 0; i < len(this.domains); i++ {
+		sb.WriteString(this.domains[i])
+
+		if i == len(this.domains)-1 {
+			sb.WriteRune('.')
+		}
 	}
 
-	retDN := ""
-
-	for _, curDomain := range dn {
-		retDN += curDomain + "."
-	}
-
-	return retDN
+	return sb.String()
 }
 
-func (this DomainName) Length() int {
-	if this == nil {
-		return 0
-	}
+func (this *DomainName) Iter() func() (domain string, done bool) {
+	curIndex := len(this.domains)
 
-	return len(this)
+	return func() (domain string, done bool) {
+		curIndex--
+		if curIndex < 0 {
+			return "", true
+		}
+		return this.domains[curIndex], false
+	}
 }
 
-func (this DomainName) Get(i int) string {
-	if len(this) == 0 || i >= len(this) {
-		return ""
-	}
-
-	return this[i]
+func (this *DomainName) Length() int {
+	return len(this.domains)
 }
