@@ -38,10 +38,28 @@ func TestParseDomainNameOfOnePartNoEndDotReturnsDomain(t *testing.T) {
 	}
 }
 
-// func TestParseDomainNameOfOnePartWithEndDotReturnsDomain(t *testing.T) {
-// 	dn, _ := ParseDomainNameFromString("com.")
+func TestParseDomainNameMultiPartIteratesOverAllParts(t *testing.T) {
+	dn, _ := ParseDomainNameFromString("something.www.z.com")
 
-// 	if dn.Length() == 0 || dn.Get(0) != "com" {
-// 		t.Fail()
-// 	}
-// }
+	iter := dn.Iter()
+
+	count := 0
+	for curName, done := iter(); !done; curName, done = iter() {
+
+		switch {
+		case count == 0 && curName != "com":
+			t.Fatalf("For first index expected %s but got %s instead", "com", curName)
+		case count == 1 && curName != "z":
+			t.Fatalf("For second index expected %s but got %s instead", "z", curName)
+		case count == 2 && curName != "www":
+			t.Fatalf("For third index expected %s but got %s instead", "www", curName)
+		case count == 3 && curName != "something":
+			t.Fatalf("For fourth index expected %s but got %s instead", "something", curName)
+		}
+		count++
+	}
+
+	if count != 4 {
+		t.Fatalf("Failed to process all domains, processed %d instead of %d", count, 4)
+	}
+}
