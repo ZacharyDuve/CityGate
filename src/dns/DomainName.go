@@ -23,7 +23,7 @@ func ParseDomainNameFromString(dn string) (*DomainName, error) {
 	return domainName, nil
 }
 
-func (this *DomainName) String() string {
+func (this DomainName) String() string {
 	sb := strings.Builder{}
 
 	for i := 0; i < len(this.domains); i++ {
@@ -37,18 +37,25 @@ func (this *DomainName) String() string {
 	return sb.String()
 }
 
-func (this *DomainName) Iter() func() (domain string, done bool) {
-	curIndex := len(this.domains)
-
-	return func() (domain string, done bool) {
-		curIndex--
-		if curIndex < 0 {
-			return "", true
-		}
-		return this.domains[curIndex], false
-	}
+func (this DomainName) Iter() *DomainNameIterator {
+	return &DomainNameIterator{domainName: this, curPosition: len(this.domains) - 1}
 }
 
-func (this *DomainName) Length() int {
-	return len(this.domains)
+type DomainNameIterator struct {
+	domainName  DomainName
+	curPosition int
+}
+
+func (this *DomainNameIterator) Next() string {
+	if !this.HasNext() {
+		return ""
+	}
+
+	i := this.curPosition
+	this.curPosition--
+	return this.domainName.domains[i]
+}
+
+func (this *DomainNameIterator) HasNext() bool {
+	return this.curPosition >= 0
 }

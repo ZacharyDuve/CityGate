@@ -3,7 +3,6 @@ package dns
 import (
 	"net"
 	"sync"
-	"time"
 )
 
 type domain struct {
@@ -13,18 +12,6 @@ type domain struct {
 
 func newDomain(n DomainName) *domain {
 	return &domain{name: n, subDomains: make([]*domain, 0)}
-}
-
-type Host interface {
-	FQDN() DomainName
-	Address() net.Addr
-	Expires() time.Time
-}
-
-type host struct {
-	fqdn           string
-	addr           net.Addr
-	expirationTime time.Time
 }
 
 type hostedDomainsManager struct {

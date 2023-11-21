@@ -31,10 +31,12 @@ func TestParseDomainNameOfOnePartNoEndDotReturnsDomain(t *testing.T) {
 
 	iter := dn.Iter()
 
-	d0, _ := iter()
+	if !iter.HasNext() {
+		t.Fatal("Expected domain name iterator to have next value but didn't")
+	}
 
-	if d0 != "com" {
-		t.Fail()
+	if iter.Next() != "com" {
+		t.Fatal("Expected iterator for domain name to return com")
 	}
 }
 
@@ -44,7 +46,11 @@ func TestParseDomainNameMultiPartIteratesOverAllParts(t *testing.T) {
 	iter := dn.Iter()
 
 	count := 0
-	for curName, done := iter(); !done; curName, done = iter() {
+	for {
+		if !iter.HasNext() {
+			break
+		}
+		curName := iter.Next()
 
 		switch {
 		case count == 0 && curName != "com":
