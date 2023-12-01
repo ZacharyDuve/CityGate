@@ -5,11 +5,11 @@ import (
 )
 
 type Host interface {
-	FQDN() DomainName
+	FQDN() *DomainName
 	Address() net.Addr
 }
 
 type host struct {
-	fqdn string
+	fqdn DomainName
 	addr net.Addr
 }

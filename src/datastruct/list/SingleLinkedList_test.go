@@ -8,7 +8,7 @@ type testThing struct {
 }
 
 func TestListLifeCycle(t *testing.T) {
-	l := &SingleLinkedList[testThing]{}
+	l := &SingleLinkedList[*testThing]{}
 
 	myTestThing := &testThing{name: "bib", number: 43}
 	MyOtherTestThing := &testThing{name: "chichi", number: 97}
@@ -33,7 +33,7 @@ func TestListLifeCycle(t *testing.T) {
 		t.Fatal("Expect to contains as already exists")
 	}
 
-	if l.Find(func(t *testThing) bool { return t.name == myTestThing.name }) != myTestThing {
+	if res := l.Find(func(t *testThing) bool { return t.name == myTestThing.name }); res != nil && res.Value != myTestThing {
 		t.Fatal("Expected to find my testThing due to name match")
 	}
 

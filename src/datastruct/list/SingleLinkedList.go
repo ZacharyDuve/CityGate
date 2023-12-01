@@ -10,10 +10,10 @@ type SingleLinkedList[T comparable] struct {
 
 type slListNode[T comparable] struct {
 	next  *slListNode[T]
-	value *T
+	value T
 }
 
-func (this *SingleLinkedList[T]) Contains(v *T) bool {
+func (this *SingleLinkedList[T]) Contains(v T) bool {
 	for curNode := this.head; curNode != nil; curNode = curNode.next {
 		if curNode.value == v {
 			return true
@@ -23,7 +23,7 @@ func (this *SingleLinkedList[T]) Contains(v *T) bool {
 	return false
 }
 
-func (this *SingleLinkedList[T]) Add(v *T) bool {
+func (this *SingleLinkedList[T]) Add(v T) bool {
 	var lastNode *slListNode[T]
 
 	if this.head == nil {
@@ -45,18 +45,22 @@ func (this *SingleLinkedList[T]) Add(v *T) bool {
 
 }
 
-func (this *SingleLinkedList[T]) Find(compFunc func(*T) bool) *T {
+type Results[T comparable] struct {
+	Value T
+}
+
+func (this *SingleLinkedList[T]) Find(compFunc func(T) bool) *Results[T] {
 	for curNode := this.head; curNode != nil; curNode = curNode.next {
 		if compFunc(curNode.value) {
 			//If we found that we already have then no need to add
-			return curNode.value
+			return &Results[T]{Value: curNode.value}
 		}
 	}
 
 	return nil
 }
 
-func (this *SingleLinkedList[T]) Remove(t *T) bool {
+func (this *SingleLinkedList[T]) Remove(t T) bool {
 	var prevNode *slListNode[T]
 	for curNode := this.head; curNode != nil; curNode = curNode.next {
 		if curNode.value == t {

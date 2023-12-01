@@ -2,6 +2,8 @@ package dns
 
 import (
 	"errors"
+	"log"
+	"time"
 
 	"github.com/ZacharyDuve/CityGate/src/datastruct/list"
 )
@@ -20,16 +22,15 @@ type hostResolverTree struct {
 }
 
 type subDomain struct {
-	domainName string
-	hosts      list.SingleLinkedList[Host]
-	subDomains list.SingleLinkedList[subDomain]
+	domainName  string
+	hostRecords list.SingleLinkedList[hostRecord]
+	subDomains  list.SingleLinkedList[*subDomain]
 }
 
-// type subDomainTreeNode struct {
-// 	domain         string
-// 	hostsHead      *hostListNode
-// 	subDomainsHead *subDomainListNode
-// }
+type hostRecord struct {
+	expirationTime time.Time
+	host           Host
+}
 
 func NewHostResolver() HostResolver {
 	return &hostResolverTree{rootDomain: &subDomain{domainName: root_domain_name}}
@@ -42,21 +43,44 @@ func (this *hostResolverTree) AddUpdateHost(h Host) error {
 	for hostDomainNameIter.HasNext() {
 		curHostDomain := hostDomainNameIter.Next()
 
-		matchingSubDomain := curDomain.subDomains.Find(func(curSubDomain *subDomain) bool {
+		matchingSubDomainResult := curDomain.subDomains.Find(func(curSubDomain *subDomain) bool {
 			return curSubDomain.domainName == curHostDomain
 		})
 
-		if matchingSubDomain == nil {
-			matchingSubDomain = &subDomain{domainName: curHostDomain}
-			curDomain.subDomains.Add(matchingSubDomain)
+		if matchingSubDomainResult == nil {
+			newDomain := &subDomain{domainName: curHostDomain}
+			curDomain.subDomains.Add(newDomain)
+			curDomain = newDomain
+		} else {
+			curDomain = matchingSubDomainResult.Value
 		}
 
-		curDomain = matchingSubDomain
 	}
 
 	//At this point curDomain should be the domain that the host is hosting
 
+	hosts := curDomain.hostRecords
+	//Lets see if we have a matching host
+	foundHostRecordResult := hosts.Find(func(curHost hostRecord) bool {
+		return h.Address().String() == curHost.host.Address().String()
+	})
+
+	//Now lets check the results to if actually found our host or if
+
+	if foundHostRecordResult == nil {
+		//We don't have a host so lets add it
+		if !hosts.Add(newHostRecord(h)) {
+			log.Println("Error adding host", h)
+		}
+	} else {
+		foundHostRecordResult.Value.expirationTime = time.Now()
+	}
+
 	return errors.ErrUnsupported
+}
+
+func newHostRecord(h Host) hostRecord {
+	return hostRecord{host: h, expirationTime: time.Now()}
 }
 
 func (this *hostResolverTree) ResolveDomain(DomainName) Host {
