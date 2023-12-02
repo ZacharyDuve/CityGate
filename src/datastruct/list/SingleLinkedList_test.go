@@ -45,3 +45,51 @@ func TestListLifeCycle(t *testing.T) {
 		t.Fatal("Expected second remove to not occur")
 	}
 }
+
+//======================================== Len() ==================================================
+
+func TestThatLenStartsAt0(t *testing.T) {
+	l := &SingleLinkedList[int]{}
+
+	if l.Len() != 0 {
+		t.Fatalf("Expected Len of new list to be 0 but it was %d", l.Len())
+	}
+}
+
+func TestThatLenIsNAfterAddingNElements(t *testing.T) {
+	l := &SingleLinkedList[int]{}
+
+	numElemsToAdd := 10
+
+	for i := 0; i < numElemsToAdd; i++ {
+		l.Add(i * i)
+	}
+
+	if l.Len() != numElemsToAdd {
+		t.Fatalf("Expected Len of %d after adding that many elements but instead got %d", numElemsToAdd, l.Len())
+	}
+}
+
+func TestThatLenIsOriginalMinusNAfterRemovingNElements(t *testing.T) {
+	l := &SingleLinkedList[int]{}
+
+	numElemsToAdd := 10
+
+	for i := 0; i < numElemsToAdd; i++ {
+		l.Add(i)
+	}
+
+	numElemsToRemove := 5
+
+	if numElemsToAdd < numElemsToRemove {
+		t.Fatal("BAD TEST as test is trying to remove more elements than it added")
+	}
+
+	for i := 0; i < numElemsToRemove; i++ {
+		l.Remove(i)
+	}
+
+	if l.Len() != numElemsToAdd-numElemsToRemove {
+		t.Fatalf("Expected Len of %d after removing that many elements but instead got %d", numElemsToAdd-numElemsToRemove, l.Len())
+	}
+}

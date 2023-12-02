@@ -2,7 +2,9 @@ package dns
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/ZacharyDuve/CityGate/src/datastruct/list"
@@ -15,6 +17,7 @@ const (
 type HostResolver interface {
 	AddUpdateHost(Host) error
 	ResolveDomain(DomainName) Host
+	PrintTree()
 }
 
 type hostResolverTree struct {
@@ -25,6 +28,7 @@ type subDomain struct {
 	domainName  string
 	hostRecords list.SingleLinkedList[hostRecord]
 	subDomains  list.SingleLinkedList[*subDomain]
+	depth       int
 }
 
 type hostRecord struct {
@@ -33,7 +37,7 @@ type hostRecord struct {
 }
 
 func NewHostResolver() HostResolver {
-	return &hostResolverTree{rootDomain: &subDomain{domainName: root_domain_name}}
+	return &hostResolverTree{rootDomain: &subDomain{domainName: root_domain_name, depth: 0}}
 }
 
 func (this *hostResolverTree) AddUpdateHost(h Host) error {
@@ -48,7 +52,7 @@ func (this *hostResolverTree) AddUpdateHost(h Host) error {
 		})
 
 		if matchingSubDomainResult == nil {
-			newDomain := &subDomain{domainName: curHostDomain}
+			newDomain := &subDomain{domainName: curHostDomain, depth: curDomain.depth + 1}
 			curDomain.subDomains.Add(newDomain)
 			curDomain = newDomain
 		} else {
@@ -71,12 +75,28 @@ func (this *hostResolverTree) AddUpdateHost(h Host) error {
 		//We don't have a host so lets add it
 		if !hosts.Add(newHostRecord(h)) {
 			log.Println("Error adding host", h)
+		} else {
+			log.Println("Host was added")
 		}
 	} else {
 		foundHostRecordResult.Value.expirationTime = time.Now()
 	}
 
 	return errors.ErrUnsupported
+}
+
+// Function useful for testing
+func (this *hostResolverTree) PrintTree() {
+	fmt.Print("-\n")
+	this.rootDomain.subDomains.ForEach(printSubDomain)
+
+}
+
+func printSubDomain(curSubDomain *subDomain) {
+
+	indent := strings.Repeat(" ", curSubDomain.depth)
+	fmt.Print(indent, "- ", curSubDomain.domainName, " ", curSubDomain.hostRecords.Len(), "\n")
+	curSubDomain.subDomains.ForEach(printSubDomain)
 }
 
 func newHostRecord(h Host) hostRecord {

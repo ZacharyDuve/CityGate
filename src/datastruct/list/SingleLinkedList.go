@@ -5,7 +5,8 @@ Attempt at making a generic single linked list
 */
 
 type SingleLinkedList[T comparable] struct {
-	head *slListNode[T]
+	length int
+	head   *slListNode[T]
 }
 
 type slListNode[T comparable] struct {
@@ -28,6 +29,7 @@ func (this *SingleLinkedList[T]) Add(v T) bool {
 
 	if this.head == nil {
 		this.head = &slListNode[T]{value: v}
+		this.length++
 		return true
 	}
 
@@ -41,6 +43,7 @@ func (this *SingleLinkedList[T]) Add(v T) bool {
 
 	//If we are here then we didn't add it
 	lastNode.next = &slListNode[T]{value: v}
+	this.length++
 	return true
 
 }
@@ -70,6 +73,7 @@ func (this *SingleLinkedList[T]) Remove(t T) bool {
 			} else {
 				prevNode.next = curNode.next
 			}
+			this.length--
 			return true
 		}
 
@@ -77,4 +81,14 @@ func (this *SingleLinkedList[T]) Remove(t T) bool {
 	}
 
 	return false
+}
+
+func (this *SingleLinkedList[T]) ForEach(eachFunc func(T)) {
+	for curNode := this.head; curNode != nil; curNode = curNode.next {
+		eachFunc(curNode.value)
+	}
+}
+
+func (this *SingleLinkedList[T]) Len() int {
+	return this.length
 }
