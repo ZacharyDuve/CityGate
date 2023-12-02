@@ -63,9 +63,10 @@ func (this *hostResolverTree) AddUpdateHost(h Host) error {
 
 	//At this point curDomain should be the domain that the host is hosting
 
-	hosts := curDomain.hostRecords
+	//Since it is not by reference we can't keep a local copy here as the original will not get modified
+	//hosts := curDomain.hostRecords
 	//Lets see if we have a matching host
-	foundHostRecordResult := hosts.Find(func(curHost hostRecord) bool {
+	foundHostRecordResult := curDomain.hostRecords.Find(func(curHost hostRecord) bool {
 		return h.Address().String() == curHost.host.Address().String()
 	})
 
@@ -73,7 +74,7 @@ func (this *hostResolverTree) AddUpdateHost(h Host) error {
 
 	if foundHostRecordResult == nil {
 		//We don't have a host so lets add it
-		if !hosts.Add(newHostRecord(h)) {
+		if !curDomain.hostRecords.Add(newHostRecord(h)) {
 			log.Println("Error adding host", h)
 		} else {
 			log.Println("Host was added")
